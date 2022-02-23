@@ -1,0 +1,422 @@
+---
+title: "R-Programming-Notes"
+author: "Franz A. Tapia Chaca"
+date: "07/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# Week 2
+## Control structures
+- control flow of R program
+
+## If-else if-else
+```{r}
+x=2
+if(x>3) {
+  y<-10
+} else {
+  y<-0
+}
+
+```
+
+Entire construct is about assigning value to y, so also valid
+```{r}
+y<-if(x>3) { 
+  10
+} else {
+  0
+}
+```
+
+## For loops
+```{r}
+for(i in 1:10){print(i)}
+```
+```{r}
+x<-c("a","b","c","d")
+for(i in 1:4){print(x[i])}
+```
+
+```{r}
+for(i in seq_along(x)){print(x[i])}
+```
+
+```{r}
+for(letter in x){print(letter)}
+```
+
+For single expressions:
+```{r}
+for(i in 1:4) print(x[i])
+```
+#### Nested for loops
+```{r}
+x <-matrix(1:6,2,3)
+for(i in seq_len(nrow(x))){  # 1:2
+  for(j in seq_len(ncol(x))){  # 1:3
+    print(x[i,j])
+  }
+}
+```
+## While loops
+- Use with care: Could result in infinite loops if not used properly
+- With hard limit, use for
+```{r}
+count <-0
+while(count<10){
+  print(count)
+  count<-count+1
+}
+```
+Testing more than 1 condition at a time
+```{r}
+z<-5
+while(z>=3 && z<=10){ # conditions evaluated from L to R
+  print(z)
+  coin<-rbinom(1,1,0.5)
+  if(coin==1){  # random walk
+    z<-z+1
+  } else {
+    z <-z-1
+  }
+}
+```
+## Repeat, next, break
+- Break to exit loop entirely, or run forever
+- Converging (repeat until 2 values are close)
+- No guarantee loop will stop. Better to set hard limit with for loop
+- If algo doesn't converge, run for long
+```{r}
+#x0<-1
+#tol<-1e-8
+#repeat{
+#  x1<-computeEstimate()
+#  if(abs(x1-x0)<tol){
+#    break
+#  } else{
+#    x0<-x1
+#  }
+#}
+```
+
+## Next
+- to skip iteration(s)
+```{r}
+for(i in 1:100) {
+  if(i<=20) {
+    # skip first 20 iterations
+    next
+  }
+  # Do something here
+}
+```
+
+- Return: exit function and return a given value
+
+## Functions
+- Stored as R objects like a vector, d.f
+- Class: function
+- can have nested functions (fn in fn)
+
+#### Arguments
+- have named arguments, included in fn definition
+- formal arguments: included in definition
+- formals function: takes fn as input and outputs formal arguments
+- functions don't use all formal arguments (e.g. missing or default values)
+
+#### Argument matching
+- matched positionally or by name
+- don't reverse argument order just because can --> confusion
+```{r}
+mydata<-rnorm(100)
+sd(mydata)
+sd(x=mydata) # named
+sd(x=mydata,na.rm=FALSE)
+sd(na.rm=FALSE,x=mydata) # any order when name argument
+sd(na.rm=FALSE,mydata) # other passed arguments matched to fn arguments - mydata assigned to data
+```
+#### Mixing of pos and name matching
+- when named matched, 'removed' frmo list and others used for rem arguments in
+```{r}
+args(lm)
+```
+- first 5 don't have default: need to specify
+- rem: don't need to specify
+
+```{r}
+#lm(data=mydata,y~x,model=FALSE,1:100) # y~x to formula, 1:100 to subset
+#lm(y~x,mydata,1:100,model=FALSE) # common usage
+```
+
+- calling by name: don't need to remember argument order, e.g. plotting fn's
+
+#### Partial matching
+- for interactive work
+- ttype part of argument name, if unique match, R system will match argument to value in
+- Order of operation:
+  - 1) exact match for named arg
+  - 2) partial match
+  - 3) positional match
+  
+#### Defining function
+```{r}
+f <- function(a,b=1,c=2,d=NULL) {
+  # NULL common value to assign: usually means nothing there
+}
+```
+
+#### Lazy evaluation
+- common model
+- arguments to fn only evaluated as needed
+```{r}
+f<-function(a,b){
+  a^2
+}
+f(2)
+```
+- Fn doesnt use b, calling f(2) does not give error b/c 2 pos'ly matched to a
+
+```{r}
+f<-function(a,b){
+  print(a)
+  #print(b)
+}
+f(45)
+```
+- Error only occured after 45 was printed out.
+- If everything before valid, will execute until error part
+
+#### ... Argument
+- Variable no of arguments to pass on other functions
+- don'y wnat to copy all argument list to new function
+```{r}
+myplot<-function(x,y,type="1",...){
+  #instead of circles, lines -> type=1
+  #... absorbs all other arugments into myplot fn
+  plot(x,y,type=type,...)
+}
+```
+
+- Generic functions use ... to pass extra arugmentt to methods
+```{r}
+mean
+function(x,...)
+UseMethod("mean")
+```
+
+Necessary when no of arguments passed to fn cannot be knowon priori
+```{r}
+args(paste)
+
+args(cat)
+```
+
+#### Arguments after ... argument
+- Arguments after must be named explicitly
+- cannot have positional or partial matching after 3 dots
+- Or R won't know if passing something to ... or diff argument
+```{r}
+args(paste)
+# function(...,sep=" ",collapse=NULL)
+
+paste("a","b",sep=":")
+paste("a","b",se=":") # se is another string to paste, but isn't!
+
+```
+
+## Scoping rules
+When fn sees symbol in body, how assign value to symbol?
+- ther's another function in r called lm, so which function call?
+```{r}
+lm<-function(x){x*x}
+lm # also lm in stats package
+```
+#### R needs to bind value to symbol
+- symbol lm
+- needs to bind value to it
+- searches through environments to find proper value
+- environments: lists of objects/symbols and values
+- when need to retrieve value of R object:
+  - 1st search global env by name match (lm, first in global env)
+  - 2nd search namespaces of each packages on search list
+  ( search list: currently loaded onto R)
+```{r}
+search() #.GlobalEnv always no.1
+```
+#### Binding values to symbols
+- GLobalEnv = user's workspace
+- base pkg - last
+- Order of packages on search list matters
+- can configure which packages get loaded on start up
+- can also load packages when want
+- cannot assume any packages available or their order
+- When load package with library fn, namespace of package gets put in pos 2 of search list
+- all else gets pushed one level
+- R has sep namespaces for fns and non-fns (e.g. fn c and vector c - possible)
+
+#### Scoping rules for R
+- Determine how a value is bound a free vsariable in fn
+- IF in a fn, 2 types of variables:
+  - fn arguments passed through def
+  - other symbols not fn arguments <- how assign value to them (lexical scoping)
+
+#### Lexical scoping
+- useful to simplify statisticl cals
+```{r}
+f<-function(x,y){
+  x^2 + y / z # where z come from?
+}
+```
+- z is free variable, what value assign?
+- Scoping rules det ^
+- The values of free variables are searched for in the env in which function was defined
+- Environment: collection of (symbol,value) pairs, i.e. x symbol, 3.13 value
+- Every env has parent env. Possible for an env to have multiple 'children'
+- Empty env only one without parent
+- .Global env: set of (s,v) pairs
+- associate fn with env: closure or function closure --> interesting R operations
+
+#### Searching for value for a free variable:
+- if in a function, encounter free var, what haps?
+- look at env in which function was def'd
+- if fn def'd in global, search in global env
+- if cannot find in global env, search continues in parent environment of global env
+- usual case, parent env is next thing down on search list
+- go down list until find value for free var
+- possible to def fn outside of global env
+- continue search until hit top level env, usually Global env
+- if fn defined in a package, top level env is the namesapce of that package
+- cannot find ^, continue to last (base), and next: empty environment.
+- when hit empty env, error: cannot find value for symbol
+
+#### Lexical Scoping
+- Usually free variables found in workspace as fn's defined in Global Env
+- In R, can defined functions inside other functions
+- A function can return a function
+- The returned function was designed in another function
+- The environment is the inside of another function, not the global env
+
+#### Constructor functions
+- function constructing another
+```{r}
+make.power<-function(n){
+  pow<-function(x){
+    x^n  # n free variable. pow will find n vlaue in make.power
+  }
+  pow
+}
+cube<-make.power(3)
+square<-make.power(2)
+cube(3)
+square(3)
+```
+#### Exploring a function closure
+- What's in a fn env?
+```{r}
+ls(environment(cube))
+```
+```{r}
+get("n",environment(cube))
+```
+
+##### Lexical vs Dynamics scoping
+- Dynamic: other prorgamming languages
+```{r}
+y<-10
+f<-function(x){
+  y<-2  # free var
+  y^2 + g(x)  # g free var
+}
+g<-function(x){
+  x*y # y free var
+}
+f(3)
+```
+- Lexical scoping: y in g found in Global Ev
+- Dynamic: y looked up in env from which fn was called (calling env = f)
+  - R, calling env= parent frame
+
+#### When They look the same
+- When fn defined in global env and called in gloval env, def and call env same
+- Gives appearance of dynamic scoping
+```{r}
+g<-function(x){
+  a<-3
+  x+a+y
+}
+y<-3
+g(2)
+```
+
+
+#### Other languages support lexical scoping:
+- Python
+- Perl
+- Scheme
+- Common lisp: all languages converge to Lisp
+
+
+#### Consequences of lexical scoping:
+- All objects need to be stored in memory, e.g. small objects no problem
+- With v large datasets, reading into R challenging if all needs to be stored in memory
+- Every function needs to carry pointer to defining enviroment, which could be anywhere
+- e.g. function within function
+
+## Scoping rules - Application: optimisation
+- Combo of scoping rules and functions, for optimisation
+- optimisation routines (optim, nlm, optimise): require that pass a fn to themwhose argument is vector of parameters, e.g. log likelihood (min/max over a range of parameters)
+- object function might depend on other things besides parameters, e.g. data
+- how specify fn that depends on parameters and data in clearn way?
+- when optimising, important to allow user to hold certain parameters fixed
+
+#### Maximising a normal likelihood
+- Write constructor fn: neg log likelihood
+- R optimisation fns attempt to minimise fns by default
+- writing object fns, if defined to be maxed, need to take -ve to minimise
+```{r}
+make.NegLogLik<-function(data,fixed=c(FALSE,FALSE)) { # fixed det's if want to fix params
+  params<-fixed
+  function(p){ # parameter vector to optimise over
+    params[!fixed]<-p
+    mu<-params[1]
+    sigma<-params[2]
+    a<- -0.5*length(data)*log(2*pi*sigma^2)
+    b<- -0.5*sum((data-mu)^2)/(sigma^2)
+    -(a+b)
+  } # return log likelihood for normal distrib, want to fit data to N
+} # returns fn
+```
+
+```{r}
+set.seed(1); normals<-rnorm(100,1,2)
+nLL<-make.NegLogLik(normals)
+nLL  # note enclosing environment - pointer to defining enviroment
+environment(nLL)  # hexadecimal address
+ls(environment(nLL))  # data = free var
+```
+
